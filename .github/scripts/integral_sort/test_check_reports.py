@@ -3,13 +3,13 @@ from copy import deepcopy
 from pathlib import Path
 import os
 import tempfile
-import time
 import unittest
 import xml.etree.ElementTree as ET
 
 from check_reports import CLASS, CONTROLS, ERROR_CASES, EXPECTED, METHODS, validate, validate_stores
 
 MODULE = Path('/tmp/native-module')
+FIXTURE_TIME_NS = 1_700_000_000_000_000_000
 
 
 def fixture(mode):
@@ -36,8 +36,9 @@ class ValidatorTests(unittest.TestCase):
     def check(self, suite, mode, expect=True, stale=False):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'report.xml'
-            start = time.time_ns()
+            start = FIXTURE_TIME_NS
             ET.ElementTree(suite).write(path, encoding='utf-8')
+            os.utime(path, ns=(start, start))
             if stale:
                 os.utime(path, ns=(start - 10_000_000, start - 10_000_000))
             if expect:
@@ -111,14 +112,18 @@ class ValidatorTests(unittest.TestCase):
         for mutation in ('none', 'missing-class', 'extra-class', 'duplicate-case', 'missing-case', 'hidden-error', 'flaky-error', 'classpath-tail', 'bad-count', 'stale'):
             with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as directory:
                 directory = Path(directory)
-                start = time.time_ns()
-                ET.ElementTree(fixture('candidate')).write(directory / f'TEST-{CLASS}.xml', encoding='utf-8')
+                start = FIXTURE_TIME_NS
+                focused = directory / f'TEST-{CLASS}.xml'
+                ET.ElementTree(fixture('candidate')).write(focused, encoding='utf-8')
+                os.utime(focused, ns=(start, start))
                 for class_name, methods in expected.items():
                     suite = ET.Element('testsuite', name=class_name, tests=str(len(methods)), errors='0', failures='0', skipped='0')
                     suite.append(deepcopy(fixture('candidate').find('properties')))
                     for method in methods:
                         ET.SubElement(suite, 'testcase', classname=class_name, name=method)
-                    ET.ElementTree(suite).write(directory / f'TEST-{class_name}.xml', encoding='utf-8')
+                    report = directory / f'TEST-{class_name}.xml'
+                    ET.ElementTree(suite).write(report, encoding='utf-8')
+                    os.utime(report, ns=(start, start))
                 chosen = directory / ('TEST-' + next(iter(expected)) + '.xml')
                 if mutation == 'missing-class': chosen.unlink()
                 elif mutation == 'extra-class': (directory / 'TEST-Unrelated.xml').write_text('<testsuite/>')
@@ -135,6 +140,7 @@ class ValidatorTests(unittest.TestCase):
                         prop.set('value', prop.get('value') + ':/tmp/standalone/classes')
                     if mutation == 'bad-count': suite.set('tests', '0')
                     ET.ElementTree(suite).write(chosen, encoding='utf-8')
+                    os.utime(chosen, ns=(start, start))
                 if mutation == 'none': self.assertEqual(validate_stores(directory, start, MODULE), 70)
                 else:
                     with self.assertRaises(ValueError): validate_stores(directory, start, MODULE)

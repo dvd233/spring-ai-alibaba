@@ -5,7 +5,6 @@ import os
 import shutil
 import subprocess
 import sys
-import time
 
 from check_reports import CLASS, validate, validate_stores
 from source_binding import PRODUCTION, TEST, verify
@@ -29,14 +28,19 @@ elif phase == 'stores':
     command += ['-Dtest=BaseStoreIntegralSortingTest,MemoryStoreTest,FileSystemStoreTest,DatabaseStoreTest,DatabaseStoreAllDialectTest,StoreIntegrationTest,GraphStoreIntegrationTest', 'test']
 else:
     command += ['checkstyle:check', 'spotless:check']
-started_ns = time.time_ns()
+target.mkdir(parents=True, exist_ok=True)
+marker = target / f'.validation-{phase}-started'
+with marker.open('x') as stream:
+    stream.write(f'{phase} native Maven freshness marker\n')
+started_ns = marker.stat().st_mtime_ns
+shutil.copy2(marker, evidence / f'{phase}-freshness-marker')
 with (evidence / f'{phase}.log').open('w') as log:
     process = subprocess.Popen(command, cwd=repo, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, close_fds=True)
     for line in process.stdout:
         print(line, end='', flush=True)
         log.write(line)
     result = process.wait()
-(evidence / f'{phase}-execution.json').write_text(json.dumps({'argv': command, 'started_ns': started_ns, 'exit': result}, indent=2))
+(evidence / f'{phase}-execution.json').write_text(json.dumps({'argv': command, 'started_ns': started_ns, 'freshness_marker': str(marker), 'exit': result}, indent=2))
 verify(root)
 if phase != 'style':
     report_dir = target / 'surefire-reports'
