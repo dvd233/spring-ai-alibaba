@@ -81,10 +81,28 @@ jobs:
           ./mvnw -version | tee ../evidence/maven-version.log
           ./mvnw "${common[@]}" org.apache.maven.plugins:maven-dependency-plugin:3.5.0:go-offline | tee ../evidence/dependency-prefetch.log
           ./mvnw "${common[@]}" org.apache.maven.plugins:maven-dependency-plugin:3.5.0:get -Dartifact=org.apache.maven.surefire:surefire-junit-platform:3.1.2 -Dtransitive=true | tee ../evidence/surefire-provider-prefetch.log
-          ./mvnw "${common[@]}" org.apache.maven.plugins:maven-dependency-plugin:3.5.0:get -Dartifact=com.google.googlejavaformat:google-java-format:1.24.0 -Dtransitive=true | tee ../evidence/spotless-formatter-prefetch.log
           ./mvnw "${common[@]}" test | tee ../evidence/candidate-compile-only.log
           cd ../baseline
           ./mvnw "${common[@]}" test | tee ../evidence/baseline-compile-only.log
+          scripts="$GITHUB_WORKSPACE/harness/.github/scripts/integral_sort"
+          verify_sources() {
+            python3 - "$scripts" "$GITHUB_WORKSPACE" <<'PYVERIFY'
+          import sys
+          sys.path.insert(0, sys.argv[1])
+          from source_binding import verify
+          verify(sys.argv[2])
+          PYVERIFY
+          }
+          verify_sources
+          for checkout in candidate baseline; do
+            cd "$GITHUB_WORKSPACE/$checkout"
+            status=0
+            ./mvnw "${common[@]}" spotless:check | tee "../evidence/$checkout-spotless-warmup.log" || status=$?
+            verify_sources
+            if [ "$status" -ne 0 ]; then
+              exit "$status"
+            fi
+          done
       - name: Run fresh native baseline, candidate, audited Store tests, and style checks with IP egress disabled
         shell: bash
         run: |
