@@ -1,0 +1,69 @@
+{
+  "com.alibaba.cloud.ai.graph.store.stores.MemoryStoreTest": [
+    "testPutAndGetItem",
+    "testDeleteItem",
+    "testSearchItems",
+    "testListNamespaces",
+    "testValidationErrors",
+    "testSizeAndClear",
+    "testSearchByNamespace",
+    "testSearchByQuery",
+    "testSearchWithFilters",
+    "testPagination",
+    "testUpdateExistingItem"
+  ],
+  "com.alibaba.cloud.ai.graph.store.stores.FileSystemStoreTest": [
+    "testPutAndGetItem",
+    "testDeleteItem",
+    "testSearchItems",
+    "testListNamespaces",
+    "testValidationErrors",
+    "testSizeAndClear",
+    "testRejectsNamespaceTraversalSegments",
+    "testRejectsKeyTraversalSegments",
+    "testDirectoryCreation"
+  ],
+  "com.alibaba.cloud.ai.graph.store.stores.DatabaseStoreTest": [
+    "testPutAndGetItem",
+    "testDeleteItem",
+    "testSearchItems",
+    "testListNamespaces",
+    "testValidationErrors",
+    "testSizeAndClear",
+    "testUpdateExistingItem"
+  ],
+  "com.alibaba.cloud.ai.graph.store.stores.DatabaseStoreAllDialectTest": [
+    "shouldUseMysqlUpsertSql",
+    "shouldUsePostgresqlUpsertSql",
+    "shouldUseOracleUpsertSql",
+    "shouldUseH2MergeSql",
+    "shouldUseMysqlInitializeTableSql",
+    "shouldFallbackToDefaultTableNameWhenTableNameIsBlank",
+    "shouldUsePostgresqlInitializeTableSql",
+    "shouldUseOracleInitializeTableSql",
+    "shouldUseGetItemSqlAndDeserializeResult",
+    "shouldUseDeleteItemSql",
+    "shouldUseClearAndSizeSql",
+    "shouldUseSelectAllSqlForSearchAndNamespaces",
+    "shouldThrowForUnsupportedDialect",
+    "shouldValidateInputForPutItem",
+    "shouldBuildMysqlJdbcUrl",
+    "shouldBuildPostgresqlJdbcUrl",
+    "shouldBuildOracleJdbcUrl",
+    "shouldBuildH2JdbcUrl",
+    "shouldValidateBuildJdbcUrlParameters"
+  ],
+  "com.alibaba.cloud.ai.graph.store.StoreIntegrationTest": [
+    "testAllStoreImplementations",
+    "testStoreSearchAndNamespaceOperations",
+    "testStoreConsistencyAcrossImplementations"
+  ],
+  "com.alibaba.cloud.ai.graph.store.GraphStoreIntegrationTest": [
+    "testUserSessionWorkflowWithMemoryStore",
+    "testUserSessionWorkflowWithFileSystemStore",
+    "testUserSessionWorkflowWithDatabaseStore",
+    "testCrossSessionPersistenceWorkflow",
+    "testMultiStepDataProcessingWithStore",
+    "testStoreSearchInGraphWorkflow"
+  ]
+}
