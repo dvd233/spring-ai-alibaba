@@ -81,6 +81,7 @@ jobs:
           ./mvnw -version | tee ../evidence/maven-version.log
           ./mvnw "${common[@]}" org.apache.maven.plugins:maven-dependency-plugin:3.5.0:go-offline | tee ../evidence/dependency-prefetch.log
           ./mvnw "${common[@]}" org.apache.maven.plugins:maven-dependency-plugin:3.5.0:get -Dartifact=org.apache.maven.surefire:surefire-junit-platform:3.1.2 -Dtransitive=true | tee ../evidence/surefire-provider-prefetch.log
+          ./mvnw "${common[@]}" org.apache.maven.plugins:maven-dependency-plugin:3.5.0:get -Dartifact=com.google.googlejavaformat:google-java-format:1.24.0 -Dtransitive=true | tee ../evidence/spotless-formatter-prefetch.log
           ./mvnw "${common[@]}" test | tee ../evidence/candidate-compile-only.log
           cd ../baseline
           ./mvnw "${common[@]}" test | tee ../evidence/baseline-compile-only.log
